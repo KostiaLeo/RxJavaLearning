@@ -1,5 +1,7 @@
 package com.example.rxjavabeginning.HotObservableOperators;
 
+import com.example.rxjavabeginning.StaticObservableDefines;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,26 +17,6 @@ import rx.schedulers.Schedulers;
 // SHARE() = PUBLISH().REFCOUNT()
 
 public class CacheShareMethods {
-    String[] albs = {"Lil Peep pt.1", "Live Forever", "Vertigo", "Crybaby", "Hellboy", "Come Over When You're Sober pt.1", "Come Over When You're Sober pt.2", "Goth Angel Sinner", "Everybody's Everything"};
-    final List<String> albums = new ArrayList<>(Arrays.asList(albs));
-
-    // ---------- OnSubscribe action defining - parameter for creating observable
-    Observable.OnSubscribe<String> onSubscribe = new Observable.OnSubscribe<String>() {
-        @Override
-        public void call(Subscriber<? super String> subscriber) {
-            for (String album : albums) {
-                if (subscriber.isUnsubscribed()) return;
-                try {
-                    TimeUnit.SECONDS.sleep(1);
-                    subscriber.onNext(album);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (subscriber.isUnsubscribed()) return;
-            subscriber.onCompleted();
-        }
-    };
 
     // CACHE() = REPLAY().AUTOCONNECT()
     // SHARE() = PUBLISH().REFCOUNT()
@@ -43,43 +25,14 @@ public class CacheShareMethods {
     void subscriptionRefCount() {
         // cache() - method which start emitting on first sub.-er and send all messages for each new sub.-er (even ones new sub.-er missed)
 
-        final Observable<String> observable = Observable.from(albums).create(onSubscribe).subscribeOn(Schedulers.io()).cache();
+        final Observable<String> observable = Observable.from(StaticObservableDefines.albums)
+                .create(StaticObservableDefines.onSubscribe).subscribeOn(Schedulers.io()).cache();
         //final Subscription sub = observable.connect();
 
         System.out.println("Observable is connected");
-        final Observer<String> observer1 = new Observer<String>() {
-            @Override
-            public void onCompleted() {
-                System.out.println("Complete for first observer");
-            }
 
-            @Override
-            public void onError(Throwable e) {
-                System.out.println(e.getMessage());
-            }
-
-            @Override
-            public void onNext(String s) {
-                System.out.println("Album '" + s + "' is delivered to first subscriber");
-            }
-        };
-
-        final Observer<String> observer2 = new Observer<String>() {
-            @Override
-            public void onCompleted() {
-                System.out.println("Complete for second observer");
-            }
-
-            @Override
-            public void onError(Throwable e) {
-                System.out.println(e.getMessage());
-            }
-
-            @Override
-            public void onNext(String s) {
-                System.out.println("Album '" + s + "' is delivered to second subscriber");
-            }
-        };
+        final Observer<String> observer1 = StaticObservableDefines.observer1;
+        final Observer<String> observer2 = StaticObservableDefines.observer2;
 
 //        getWindow().getDecorView().postDelayed(new Runnable() {
 //            @Override
