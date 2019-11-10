@@ -1,13 +1,18 @@
-package com.example.rxjavabeginning;
+package com.example.rxjavabeginning.SubscribeOnObserveOn;
+
+import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
-import android.os.Bundle;
-import com.example.rxjavabeginning.SubscribeOnObserveOn.StaticsSubObsOn;
+
+import com.example.rxjavabeginning.R;
+
 import rx.Observable;
 import rx.Observer;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.functions.Func2;
 import rx.schedulers.Schedulers;
+
+public class SubOnObsOn {
 
 // SubscribeOn - method which defines new thread Scheduler for executing Observable.onSubscribe's call() method which generate and emit data
 
@@ -45,36 +50,37 @@ import rx.schedulers.Schedulers;
 //            .observeOn(AndroidSchedulers.mainThread()); -> finally onNext() for observers's getting data will be completed in main thread
 
 
-public class MainActivity extends AppCompatActivity {
+    public class SubOnObsOnActivity extends AppCompatActivity {
 
-    final Observer<String> observer1 = StaticsSubObsOn.observer;
+        final Observer<String> observer1 = StaticsSubObsOn.observer;
 
-    Func2<String, Integer, String> zipSongNumberAndName = new Func2<String, Integer, String>() {
+        Func2<String, Integer, String> zipSongNumberAndName = new Func2<String, Integer, String>() {
+            @Override
+            public String call(String s, Integer integer) {
+                System.out.println("zip-func operator " + integer + ". [" + Thread.currentThread().getName() + "]");
+                return integer + ": " + s;
+            }
+        };
+
+        Observable<String> observable = Observable.from(StaticsSubObsOn.cowys).create(StaticsSubObsOn.onSubscribe)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .take(6)
+                .observeOn(Schedulers.io())
+                .zipWith(Observable.from(new Integer[]{1, 2, 3, 4, 5, 6}), zipSongNumberAndName)
+                .observeOn(AndroidSchedulers.mainThread());
+
         @Override
-        public String call(String s, Integer integer) {
-            System.out.println("zip-func operator " + integer + ". [" + Thread.currentThread().getName() + "]");
-            return integer + ": " + s;
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_main);
+            example();
         }
-    };
 
-    Observable<String> observable = Observable.from(StaticsSubObsOn.cowys).create(StaticsSubObsOn.onSubscribe)
-            .subscribeOn(Schedulers.io())
-            .observeOn(Schedulers.io())
-            .take(6)
-            .observeOn(Schedulers.io())
-            .zipWith(Observable.from(new Integer[]{1, 2, 3, 4, 5, 6}), zipSongNumberAndName)
-            .observeOn(AndroidSchedulers.mainThread());
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        example();
-    }
-
-    void example() {
-        System.out.println("Subscribe creation " + "[" + Thread.currentThread().getName() + "]");
-        observable.subscribe(observer1);
-        System.out.println("Done " + "[" + Thread.currentThread().getName() + "]");
+        void example() {
+            System.out.println("Subscribe creation " + "[" + Thread.currentThread().getName() + "]");
+            observable.subscribe(observer1);
+            System.out.println("Done " + "[" + Thread.currentThread().getName() + "]");
+        }
     }
 }
